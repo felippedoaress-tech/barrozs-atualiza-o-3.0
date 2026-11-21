@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Borroz FC 27 — Ultimate Pro Simulation</title>
+  <style>
+    :root {
+      --bg: #030712;
+      --card: #064e3b;
+      --card-2: #022c22;
+      --text: #f0fdf4;
+      --muted: #6ee7b7;
+      --accent: #10b981;
+      --accent-2: #34d399;
+      --gold: #fbbf24;
+      --danger: #ef4444;
+      --border: rgba(52, 211, 153, 0.25);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: radial-gradient(circle at top, #065f46 0%, var(--bg) 70%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: rgba(2, 44, 34, 0.96);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      font-weight: 900;
+      font-size: 1.3rem;
+      letter-spacing: -0.03em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .brand span { color: var(--accent-2); }
+    .brand small {
+      background: var(--accent);
+      color: #022c22;
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 800;
+    }
+
+    .tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .tab-btn {
+      background: #022c22; color: var(--text); border: 1px solid var(--border);
+      padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.85rem; transition: all 0.2s;
+    }
+    .tab-btn:hover { border-color: var(--accent-2); }
+    .tab-btn.active { background: var(--accent); color: #022c22; border-color: var(--accent); }
+
+    .user-hud { display: flex; align-items: center; gap: 12px; }
+
+    .coin-badge {
+      background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.4);
+      color: #fbbf24; padding: 6px 12px; border-radius: 999px; font-weight: 800; font-size: 0.9rem;
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .profile-pill {
+      display: flex; align-items: center; gap: 8px; background: #022c22; border: 1px solid var(--border);
+      padding: 4px 12px 4px 6px; border-radius: 999px; cursor: pointer;
+    }
+    .profile-pill span { font-weight: 700; font-size: 0.85rem; }
+
+    main { flex: 1; max-width: 1080px; width: 100%; margin: 20px auto; padding: 0 16px; }
+
+    .panel {
+      display: none; background: linear-gradient(145deg, #064e3b, #022c22); border: 1px solid var(--border); border-radius: 16px; padding: 24px; animation: fadeIn 0.25s ease;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    }
+    .panel.active { display: block; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .hero {
+      text-align: center; padding: 32px 16px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(52, 211, 153, 0.1));
+      border: 1px solid var(--border); border-radius: 14px; margin-bottom: 22px;
+    }
+    .hero h1 { font-size: 2.5rem; font-weight: 900; letter-spacing: -0.03em; margin-bottom: 8px; }
+    .hero h1 span { color: var(--accent-2); }
+    .hero p { color: var(--muted); max-width: 650px; margin: 0 auto 20px; line-height: 1.5; }
+
+    .btn {
+      background: var(--accent); color: #022c22; border: none; padding: 10px 18px; border-radius: 8px;
+      font-weight: 800; font-size: 0.9rem; cursor: pointer; transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn:hover { opacity: 0.92; }
+    .btn:active { transform: scale(0.98); }
+    .btn.blue { background: #38bdf8; color: #082f49; }
+    .btn.gold { background: var(--gold); color: #271500; }
+    .btn.danger { background: var(--danger); color: #fff; }
+    .btn.purple { background: #a855f7; color: #fff; }
+    .btn.secondary { background: #022c22; color: var(--text); border: 1px solid var(--border); }
+
+    /* ESTILO PERFIL MODO CARREIRA (REFERÊNCIA) */
+    .career-profile-header {
+      display: flex; gap: 10px; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 20px; font-weight: 800; font-size: 0.9rem;
+    }
+    .career-tab-link { color: var(--muted); cursor: pointer; padding: 4px 10px; border-radius: 6px; }
+    .career-tab-link.active { color: #fff; background: rgba(16, 185, 129, 0.3); }
+
+    .career-main-grid { display: grid; grid-template-columns: 320px 1fr; gap: 24px; align-items: start; }
+    .career-avatar-card {
+      background: rgba(2, 44, 34, 0.9); border: 1px solid var(--border); border-radius: 14px; padding: 20px; text-align: center;
+    }
+    .career-avatar-card .face { font-size: 6rem; margin-bottom: 10px; }
+    .career-ovr-badge {
+      background: #10b981; color: #022c22; display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 18px; border-radius: 10px; font-size: 1.8rem; font-weight: 900; margin-bottom: 14px;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+    
+    .career-stats-panel { background: rgba(2, 44, 34, 0.9); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+    .career-info-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 18px; }
+    .career-info-box { background: rgba(0,0,0,0.3); border: 1px solid var(--border); padding: 12px 16px; border-radius: 10px; }
+    .career-info-box label { font-size: 0.75rem; color: var(--muted); display: block; font-weight: 700; margin-bottom: 4px; }
+    .career-info-box span { font-size: 1rem; font-weight: 900; }
+
+    /* CALENDÁRIO */
+    .calendar-container {
+      background: rgba(2, 44, 34, 0.95); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 20px;
+    }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 14px; }
+    .cal-day-header { text-align: center; font-weight: 800; font-size: 0.8rem; color: var(--muted); padding: 6px 0; }
+    .cal-cell {
+      background: rgba(0,0,0,0.35); border: 1px solid var(--border); border-radius: 8px; min-height: 80px; padding: 8px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .cal-cell:hover { border-color: var(--accent-2); }
+    .cal-cell.match-day { background: rgba(16, 185, 129, 0.25); border-color: var(--accent); }
+    .cal-cell.training-day { background: rgba(56, 189, 248, 0.25); border-color: #38bdf8; }
+    .cal-date { font-weight: 900; font-size: 0.85rem; }
+    .cal-badge { font-size: 0.65rem; font-weight: 800; padding: 2px 4px; border-radius: 4px; text-align: center; }
+
+    .match-hud {
+      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+      background: rgba(2, 44, 34, 0.9); border: 1px solid var(--border); padding: 12px 18px; border-radius: 12px; margin-bottom: 14px; gap: 10px;
+    }
+    .scoreboard { display: flex; align-items: center; gap: 14px; font-weight: 900; font-size: 1.15rem; }
+    .score-box { background: var(--accent); color: #022c22; padding: 3px 12px; border-radius: 6px; }
+
+    #pitch-canvas {
+      display: block; width: 100%; max-width: 980px; height: 520px; margin: 0 auto;
+      background: #14532d; border: 4px solid #f0fdf4; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.65);
+    }
+
+    .controls-guide { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 14px; font-size: 0.82rem; color: var(--muted); }
+    .key-tag { background: #022c22; border: 1px solid var(--border); color: var(--text); padding: 3px 8px; border-radius: 5px; font-weight: 800; }
+
+    .touch-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; gap: 12px; flex-wrap: wrap; }
+    .dpad-fc { display: grid; grid-template-columns: repeat(3, 46px); gap: 6px; }
+    .dpad-fc button, .action-btns button { height: 44px; border-radius: 10px; border: 1px solid var(--border); background: #022c22; color: var(--text); font-weight: 800; cursor: pointer; user-select: none; }
+    .action-btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; flex: 1; min-width: 320px; }
+    .action-btns button { font-size: 0.75rem; padding: 0 6px; }
+
+    #overlay-screen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3, 7, 18, 0.96); z-index: 9999;
+      display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px;
+    }
+    .overlay-icon { font-size: 4.5rem; margin-bottom: 16px; animation: bounce 1.5s infinite ease-in-out; }
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
+    .fc-card {
+      border-radius: 12px; padding: 14px; position: relative; border: 2px solid var(--border);
+      display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s;
+      background: linear-gradient(160deg, #064e3b 0%, #022c22 100%);
+    }
+    .fc-card:hover { transform: translateY(-3px); }
+    .fc-ovr { font-size: 1.4rem; font-weight: 900; color: var(--accent-2); }
+    .fc-name { font-weight: 900; font-size: 0.9rem; text-align: center; text-transform: uppercase; margin: 8px 0; }
+    .fc-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 0.72rem; font-weight: 700; margin-bottom: 10px; }
+
+    #toast {
+      position: fixed; bottom: 22px; right: 22px; background: #022c22; border: 1px solid var(--accent); color: var(--text);
+      padding: 12px 18px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      transform: translateY(120px); opacity: 0; transition: all 0.3s; z-index: 999;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+
+    footer {
+      text-align: center; padding: 18px; color: var(--muted); font-size: 0.85rem;
+      display: flex; flex-direction: column; gap: 4px; align-items: center; border-top: 1px solid var(--border); margin-top: 30px;
+    }
+    footer a { color: var(--accent-2); text-decoration: none; font-weight: 700; }
+  </style>
+</head>
+<body>
+
+  <div id="overlay-screen">
+    <div class="overlay-icon" id="overlay-emoji">🏆</div>
+    <h2 id="overlay-title" style="color:#fff; font-size:1.8rem; margin-bottom:10px;">Resultado da Partida</h2>
+    <p id="overlay-desc" style="color:var(--muted); max-width:460px; font-size:1rem; line-height:1.5;"></p>
+    <button class="btn gold" style="margin-top:20px;" onclick="closeOverlay()">Continuar Jornada</button>
+  </div>
+
+  <header>
+    <div class="brand" onclick="switchTab('home')">BORROZ <span>FC</span> <small>27</small></div>
+    
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="home">Início</button>
+      <button class="tab-btn" data-tab="match">Jogar Partida</button>
+      <button class="tab-btn" data-tab="calendar">Calendário & Treinos</button>
+      <button class="tab-btn" data-tab="career">Modo Carreira & Perfil</button>
+      <button class="tab-btn" data-tab="squad">Mercado</button>
+    </div>
+
+    <div class="user-hud">
+      <div class="coin-badge">🪙 <span id="hud-coins">900</span></div>
+      <div class="profile-pill" onclick="switchTab('career')">
+        <div class="avatar-circle" id="hud-avatar">👦🏽</div>
+        <span id="hud-name">Borroz Jr</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- TELA INICIAL -->
+    <section id="home" class="panel active">
+      <div class="hero">
+        <h1>BORROZ <span>FC 27</span></h1>
+        <p>Modo Carreira Profissional com **Calendário de Datas Importantes**[cite: 9], **Perfil do Jogador Estilo Juventus** com OVR detalhado[cite: 10], Dribles com animação em tempo real e queda realista do adversário!</p>
+        <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+          <button class="btn" onclick="startQuickMatch()">⚽ Partida Rápida (12 vs 12)</button>
+          <button class="btn blue" onclick="switchTab('career')">👤 Ver Perfil & Carreira</button>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
+        <div class="btn secondary" style="padding:18px; text-align:left; cursor:pointer;" onclick="switchTab('career')">
+          <h3 style="margin-bottom:6px; color:var(--accent-2);">👤 Perfil do Atleta</h3>
+          <p style="color:var(--muted); font-size:0.85rem;">Estatísticas, valor de mercado, moral e contrato[cite: 10].</p>
+        </div>
+        <div class="btn secondary" style="padding:18px; text-align:left; cursor:pointer;" onclick="switchTab('calendar')">
+          <h3 style="margin-bottom:6px; color:var(--gold);">📅 Calendário & Treinos</h3>
+          <p style="color:var(--muted); font-size:0.85rem;">Simule dias, faça treinos de finalização e suba seu OVR.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CALENDÁRIO & TREINOS -->
+    <section id="calendar" class="panel">
+      <div class="calendar-container">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <h2 style="color:var(--accent-2);">📅 Calendário de Datas Importantes — FC 27</h2>
+          <button class="btn gold" onclick="simulateTrainingSession()">⚡ Fazer Treino Especial (+1 OVR)</button>
+        </div>
+        <p style="color:var(--muted); font-size:0.88rem; margin-bottom:16px;">Realize treinos interativos para evoluir seus atributos ou clique nos dias de partida[cite: 9].</p>
+        
+        <div class="cal-grid">
+          <div class="cal-day-header">DOM</div>
+          <div class="cal-day-header">SEG</div>
+          <div class="cal-day-header">TER</div>
+          <div class="cal-day-header">QUA</div>
+          <div class="cal-day-header">QUI</div>
+          <div class="cal-day-header">SEX</div>
+          <div class="cal-day-header">SÁB</div>
+
+          <div class="cal-cell"><span class="cal-date">6</span></div>
+          <div class="cal-cell"><span class="cal-date">7</span></div>
+          <div class="cal-cell training-day" onclick="simulateTrainingSession()"><span class="cal-date">8</span><span class="cal-badge" style="background:#38bdf8; color:#082f49;">TREINO</span></div>
+          <div class="cal-cell"><span class="cal-date">9</span></div>
+          <div class="cal-cell match-day" onclick="startQuickMatch()"><span class="cal-date">10</span><span class="cal-badge" style="background:#10b981; color:#022c22;">PARTIDA</span></div>
+          <div class="cal-cell"><span class="cal-date">11</span></div>
+          <div class="cal-cell"><span class="cal-date">12</span></div>
+
+          <div class="cal-cell"><span class="cal-date">13</span></div>
+          <div class="cal-cell training-day" onclick="simulateTrainingSession()"><span class="cal-date">14</span><span class="cal-badge" style="background:#38bdf8; color:#082f49;">TREINO</span></div>
+          <div class="cal-cell"><span class="cal-date">15</span></div>
+          <div class="cal-cell"><span class="cal-date">16</span></div>
+          <div class="cal-cell match-day" onclick="startQuickMatch()"><span class="cal-date">17</span><span class="cal-badge" style="background:#10b981; color:#022c22;">PARTIDA</span></div>
+          <div class="cal-cell"><span class="cal-date">18</span></div>
+          <div class="cal-cell"><span class="cal-date">19</span></div>
+
+          <div class="cal-cell match-day" onclick="startQuickMatch()"><span class="cal-date">20</span><span class="cal-badge" style="background:#10b981; color:#022c22;">FINAL</span></div>
+          <div class="cal-cell"><span class="cal-date">21</span></div>
+          <div class="cal-cell training-day" onclick="simulateTrainingSession()"><span class="cal-date">22</span><span class="cal-badge" style="background:#38bdf8; color:#082f49;">TREINO</span></div>
+          <div class="cal-cell"><span class="cal-date">23</span></div>
+          <div class="cal-cell"><span class="cal-date">24</span></div>
+          <div class="cal-cell match-day" onclick="startQuickMatch()"><span class="cal-date">25</span><span class="cal-badge" style="background:#10b981; color:#022c22;">DECISÃO</span></div>
+          <div class="cal-cell"><span class="cal-date">26</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODO CARREIRA & PERFIL -->
+    <section id="career" class="panel">
+      <div class="career-profile-header">
+        <span class="career-tab-link active">Player Profile</span>
+        <span class="career-tab-link" onclick="switchTab('calendar')">Calendar</span>
+        <span class="career-tab-link" onclick="switchTab('squad')">Squad</span>
+      </div>
+
+      <div class="career-main-grid">
+        <div class="career-avatar-card">
+          <div class="face" id="profile-avatar-icon">👦🏽</div>
+          <div class="career-ovr-badge">
+            ⬆️ <span id="profile-ovr-num">82</span> OVR
+          </div>
+          <h3 id="profile-name-title" style="font-size:1.5rem; font-weight:900; margin-top:6px;">BORROZ JR</h3>
+          <p style="color:var(--muted); font-size:0.8rem; margin-top:4px;">CAM · ST · LW</p>
+        </div>
+
+        <div class="career-stats-panel">
+          <h3 style="color:var(--accent-2); margin-bottom:14px;">Análise Geral do Atleta & Contrato</h3>
+          <div class="career-info-row">
+            <div class="career-info-box">
+              <label>Clube Atual</label>
+              <span id="profile-club-name">Terrão FC (Favela)</span>
+            </div>
+            <div class="career-info-box">
+              <label>Valor de Mercado (xTV)</label>
+              <span>$42.5M</span>
+            </div>
+            <div class="career-info-box">
+              <label>Moral / Condição</label>
+              <span style="color:#34d399;">🟢 HAPPY / READY</span>
+            </div>
+            <div class="career-info-box">
+              <label>Contrato Até</label>
+              <span>31 JUL 2029</span>
+            </div>
+          </div>
+
+          <h3 style="color:var(--accent-2); margin-bottom:10px; font-size:0.95rem;">Atributos Principais</h3>
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; font-weight:800; font-size:0.85rem;">
+            <div class="career-info-box">Pace: <span id="attr-pac" style="color:#34d399;">86</span></div>
+            <div class="career-info-box">Shooting: <span id="attr-sho" style="color:#34d399;">84</span></div>
+            <div class="career-info-box">Passing: <span id="attr-pas" style="color:#34d399;">80</span></div>
+            <div class="career-info-box">Dribbling: <span style="color:#34d399;">85</span></div>
+            <div class="career-info-box">Defending: <span style="color:#34d399;">38</span></div>
+            <div class="career-info-box">Physical: <span style="color:#34d399;">76</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PARTIDA 2D COM MOTOR TÁTICO E ANIMAÇÕES -->
+    <section id="match" class="panel">
+      <div class="match-hud">
+        <div class="scoreboard">
+          <span style="font-size:0.75rem; color:var(--accent-2);">12 vs 12 · PRO FC 27</span>
+          <span id="team-home-name">MEU TIME</span>
+          <span class="score-box"><span id="score-home">0</span> - <span id="score-away">0</span></span>
+          <span id="team-away-name">RIVAL FC</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-weight:900; font-size:1.1rem; color:var(--gold);">⏱️ <span id="match-clock">00'</span></span>
+          <button class="btn secondary" style="padding:6px 12px; font-size:0.8rem;" onclick="resetMatch()">Reiniciar</button>
+        </div>
+      </div>
+
+      <canvas id="pitch-canvas" width="980" height="520"></canvas>
+
+      <div class="controls-guide">
+        <span><span class="key-tag">WASD / Setas</span> Mover</span>
+        <span><span class="key-tag">ESPAÇO / J</span> Tocar Bola</span>
+        <span><span class="key-tag">Q</span> Drible Elástico</span>
+        <span><span class="key-tag">R</span> Chapéu / Lencinho</span>
+        <span><span class="key-tag">K (Segure)</span> Chutar</span>
+        <span><span class="key-tag">L</span> Carrinho</span>
+      </div>
+
+      <div class="touch-controls">
+        <div class="dpad-fc">
+          <div></div>
+          <button onmousedown="keys['ArrowUp']=true" onmouseup="keys['ArrowUp']=false" ontouchstart="keys['ArrowUp']=true" ontouchend="keys['ArrowUp']=false">▲</button>
+          <div></div>
+          <button onmousedown="keys['ArrowLeft']=true" onmouseup="keys['ArrowLeft']=false" ontouchstart="keys['ArrowLeft']=true" ontouchend="keys['ArrowLeft']=false">◀</button>
+          <button onmousedown="keys['ArrowDown']=true" onmouseup="keys['ArrowDown']=false" ontouchstart="keys['ArrowDown']=true" ontouchend="keys['ArrowDown']=false">▼</button>
+          <button onmousedown="keys['ArrowRight']=true" onmouseup="keys['ArrowRight']=false" ontouchstart="keys['ArrowRight']=true" ontouchend="keys['ArrowRight']=false">▶</button>
+        </div>
+
+        <div class="action-btns">
+          <button class="btn blue" onclick="triggerPassOrSwitch()">PASSAR</button>
+          <button class="btn purple" onclick="triggerDribble('elastic')">ELÁSTICO (Q)</button>
+          <button class="btn gold" onclick="triggerDribble('rainbow')">CHAPÉU (R)</button>
+          <button class="btn danger" onmousedown="isChargingShot=true" onmouseup="releaseShot()" ontouchstart="isChargingShot=true" ontouchend="releaseShot()">CHUTAR</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- MERCADO DE CRAQUES -->
+    <section id="squad" class="panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h2>Mercado de Transferências</h2>
+        <div class="fc-ovr" style="background:#022c22; padding:6px 14px; border-radius:8px; border:1px solid var(--border);">OVR: <span id="team-ovr-display">82</span></div>
+      </div>
+      <h3 style="margin-bottom:10px; color:var(--accent-2);">⭐ Elenco Titular</h3>
+      <div class="cards-grid" id="active-squad-grid" style="margin-bottom:24px;"></div>
+      <h3 style="margin-bottom:10px; color:var(--gold);">🛒 Mercado Global</h3>
+      <div class="cards-grid" id="market-grid"></div>
+    </section>
+  </main>
+
+  <footer>
+    <div>Borroz FC 27 — Simulação Realista com Perfil de Carreira OVR e Animações Fluidas.</div>
+    <div>Criador: <a href="https://instagram.com/drt__013" target="_blank">@drt__013</a></div>
+  </footer>
+
+  <div id="toast">Notificação</div>
+
+  <script>
+    const ALL_PLAYERS = [
+      { id: "p1", name: "Borroz Jr", pos: "ATA", ovr: 82, pac: 86, sho: 84, pas: 80, face: "👦🏽", price: 0, num: 10 },
+      { id: "p2", name: "D. Souza", pos: "MEI", ovr: 78, pac: 77, sho: 74, pas: 82, face: "🧑🏻", price: 0, num: 8 },
+      { id: "p3", name: "C. Lima", pos: "ZAG", ovr: 77, pac: 75, sho: 66, pas: 73, face: "🧔🏻", price: 0, num: 4 },
+      { id: "p4", name: "M. Silva", pos: "MEI", ovr: 79, pac: 78, sho: 76, pas: 83, face: "🧑🏾", price: 0, num: 5 },
+      { id: "p5", name: "R. Oliveira", pos: "ZAG", ovr: 78, pac: 76, sho: 68, pas: 74, face: "🧑🏻‍🦰", price: 0, num: 3 },
+      { id: "p6", name: "Endrick", pos: "ATA", ovr: 85, pac: 90, sho: 86, pas: 77, face: "👦🏽", price: 450, num: 9 },
+      { id: "p7", name: "Rodrygo", pos: "PD", ovr: 87, pac: 91, sho: 85, pas: 84, face: "🧑🏽", price: 700, num: 11 },
+      { id: "p8", name: "Neymar Jr", pos: "MEI", ovr: 90, pac: 88, sho: 87, pas: 93, face: "💇🏽‍♂️", price: 1100, num: 10 },
+      { id: "p9", name: "Bellingham", pos: "MC", ovr: 91, pac: 86, sho: 89, pas: 91, face: "🧑🏽‍🦱", price: 1400, num: 5 },
+      { id: "p10", name: "Haaland", pos: "ATA", ovr: 92, pac: 90, sho: 96, pas: 76, face: "👱🏼‍♂️", price: 1700, num: 9 }
+    ];
+
+    let state = JSON.parse(localStorage.getItem("borroz_fc_27_ultimate_v2")) || {
+      coins: 900,
+      username: "Borroz Jr",
+      pos: "ATA",
+      avatar: "👦🏽",
+      ovr: 82,
+      pac: 86,
+      sho: 84,
+      pas: 80,
+      ownedPlayers: ["p1", "p2", "p3", "p4", "p5"],
+      activeSquad: ["p1", "p2", "p3", "p4", "p5"],
+      career: { wins: 0, club: "Terrão FC (Favela)" }
+    };
+
+    function saveState() {
+      localStorage.setItem("borroz_fc_27_ultimate_v2", JSON.stringify(state));
+      updateHUD();
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 3000);
+    }
+
+    function updateHUD() {
+      document.getElementById("hud-coins").textContent = state.coins;
+      document.getElementById("hud-avatar").textContent = state.avatar;
+      document.getElementById("hud-name").textContent = state.username;
+      document.getElementById("profile-ovr-num").textContent = state.ovr;
+      document.getElementById("profile-name-title").textContent = state.username.toUpperCase();
+      document.getElementById("profile-club-name").textContent = state.career.club;
+      document.getElementById("profile-avatar-icon").textContent = state.avatar;
+      document.getElementById("team-ovr-display").textContent = state.ovr;
+      document.getElementById("team-home-name").textContent = state.username.toUpperCase();
+      
+      document.getElementById("attr-pac").textContent = state.pac;
+      document.getElementById("attr-sho").textContent = state.sho;
+      document.getElementById("attr-pas").textContent = state.pas;
+
+      renderSquadAndMarket();
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tabId));
+      document.querySelectorAll(".panel").forEach(p => p.classList.toggle("active", p.id === tabId));
+      matchRunning = (tabId === "match");
+    }
+
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+    });
+
+    function simulateTrainingSession() {
+      state.ovr++;
+      state.pac += 1;
+      state.sho += 1;
+      state.pas += 1;
+      state.coins += 150;
+      saveState();
+      showToast(`⚡ Treino concluído! OVR subiu para ${state.ovr}!`);
+    }
+
+    function renderSquadAndMarket() {
+      const activeGrid = document.getElementById("active-squad-grid");
+      const marketGrid = document.getElementById("market-grid");
+      activeGrid.innerHTML = "";
+      marketGrid.innerHTML = "";
+
+      ALL_PLAYERS.forEach(p => {
+        const isOwned = state.ownedPlayers.includes(p.id);
+        const isActive = state.activeSquad.includes(p.id);
+
+        const cardHTML = `
+          <div class="fc-card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div class="fc-ovr">${p.ovr}</div>
+              <div style="font-size:0.75rem; font-weight:800; color:var(--accent-2);">${isActive ? "✅ TITULAR" : ""}</div>
+            </div>
+            <div style="font-size:2.2rem; text-align:center; margin:6px 0;">${p.face}</div>
+            <div class="fc-name">${p.name}</div>
+            <div class="fc-stats">
+              <span>VEL ${p.pac}</span><span>CHU ${p.sho}</span>
+              <span>PAS ${p.pas}</span><span>OVR ${p.ovr}</span>
+            </div>
+            ${isActive ? `<button class="btn secondary" disabled>Titular</button>` : isOwned ? `<button class="btn blue" onclick="putInSquad('${p.id}')">Escalar</button>` : `<button class="btn gold" onclick="buyPlayer('${p.id}')">🪙 ${p.price}</button>`}
+          </div>
+        `;
+        if (isActive) activeGrid.innerHTML += cardHTML;
+        else marketGrid.innerHTML += cardHTML;
+      });
+    }
+
+    function buyPlayer(id) {
+      const player = ALL_PLAYERS.find(p => p.id === id);
+      if (state.coins < player.price) { showToast("❌ Moedas insuficientes!"); return; }
+      state.coins -= player.price;
+      state.ownedPlayers.push(id);
+      putInSquad(id, true);
+      showToast(`🎉 Contratou ${player.name}!`);
+    }
+
+    function putInSquad(id, silent = false) {
+      if (state.activeSquad.includes(id)) return;
+      if (state.activeSquad.length >= 5) state.activeSquad.pop();
+      state.activeSquad.push(id);
+      saveState();
+      if (!silent) showToast("⚽ Titular escalado!");
+    }
+
+    function triggerOverlay(emoji, title, desc) {
+      document.getElementById("overlay-emoji").textContent = emoji;
+      document.getElementById("overlay-title").textContent = title;
+      document.getElementById("overlay-desc").textContent = desc;
+      document.getElementById("overlay-screen").style.display = "flex";
+      matchRunning = false;
+    }
+
+    function closeOverlay() {
+      document.getElementById("overlay-screen").style.display = "none";
+      if (document.getElementById("match").classList.contains("active") && !matchEnded) {
+        matchRunning = true;
+      }
+    }
+
+    // ENGINE DO JOGO (LIMITES RIGOROSOS DE CAMPO E ANIMAÇÃO DE QUEDA)
+    const canvas = document.getElementById("pitch-canvas");
+    const ctx = canvas.getContext("2d");
+
+    let matchRunning = false;
+    let matchEnded = false;
+    let matchSeconds = 0;
+    let scoreHome = 0, scoreAway = 0;
+    let shotPower = 0;
+    let isChargingShot = false;
+    let goalBannerTimer = 0;
+    let goalBannerText = "";
+    let animTick = 0;
+
+    const PITCH_WIDTH = 1700;
+    const PITCH_HEIGHT = 520;
+    const FIELD_TOP = 65;
+    const FIELD_BOTTOM = 485;
+    let cameraX = 0;
+
+    const keys = {};
+    window.addEventListener("keydown", e => {
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space", "KeyW", "KeyA", "KeyS", "KeyD", "KeyK", "KeyL", "KeyQ", "KeyR"].includes(e.code)) {
+        if (document.getElementById("match").classList.contains("active")) e.preventDefault();
+      }
+      keys[e.code] = true;
+      if (!matchRunning || matchEnded) return;
+      if (e.code === "Space" || e.code === "KeyJ") triggerPassOrSwitch();
+      if (e.code === "KeyQ") triggerDribble('elastic');
+      if (e.code === "KeyR") triggerDribble('rainbow');
+      if (e.code === "KeyK" || e.code === "Enter") isChargingShot = true;
+      if (e.code === "KeyL") triggerTackle();
+    });
+
+    window.addEventListener("keyup", e => {
+      keys[e.code] = false;
+      if ((e.code === "KeyK" || e.code === "Enter") && isChargingShot) releaseShot();
+    });
+
+    function releaseShot() {
+      isChargingShot = false;
+      triggerShoot(Math.max(0.45, Math.min(1, shotPower)));
+      shotPower = 0;
+    }
+
+    let ball = { x: 850, y: 275, vx: 0, vy: 0, z: 0, vz: 0, owner: null, pickupCooldown: 0 };
+    let homePlayers = [];
+    let awayPlayers = [];
+    let homeGK = { x: 42, y: 275 };
+    let awayGK = { x: 1658, y: 275 };
+    let controlledIdx = 0;
+    let particles = [];
+
+    function spawnParticles(x, y, color, count = 8) {
+      for (let i = 0; i < count; i++) {
+        particles.push({ x, y, vx: (Math.random() - 0.5) * 4, vy: (Math.random() - 0.5) * 4, life: 20 + Math.random() * 15, color });
+      }
+    }
+
+    function startQuickMatch() {
+      switchTab("match");
+      resetMatch();
+    }
+
+    function resetMatch() {
+      scoreHome = 0; scoreAway = 0; matchSeconds = 0;
+      matchEnded = false; matchRunning = true;
+      document.getElementById("score-home").textContent = "0";
+      document.getElementById("score-away").textContent = "0";
+      document.getElementById("match-clock").textContent = "00'";
+      setupFormations();
+    }
+
+    function setupFormations() {
+      const homeCoords = [
+        { x: 810, y: 275, role: "ATA", num: 10, name: state.username },
+        { x: 690, y: 140, role: "ATA", num: 11, name: "Rodrygo" },
+        { x: 690, y: 410, role: "ATA", num: 7,  name: "Vini Jr" },
+        { x: 560, y: 200, role: "MEI", num: 8,  name: "Neymar" },
+        { x: 560, y: 350, role: "MEI", num: 5,  name: "M. Silva" },
+        { x: 430, y: 115, role: "MEI", num: 6,  name: "Paquetá" },
+        { x: 430, y: 435, role: "MEI", num: 14, name: "Bruno G." },
+        { x: 290, y: 150, role: "ZAG", num: 3,  name: "Militão" },
+        { x: 290, y: 400, role: "ZAG", num: 4,  name: "Marquinhos" },
+        { x: 170, y: 210, role: "ZAG", num: 2,  name: "Danilo" },
+        { x: 170, y: 340, role: "ZAG", num: 16, name: "Wendell" }
+      ];
+
+      homePlayers = homeCoords.map((c, idx) => ({
+        x: c.x, y: c.y, homeX: c.x, homeY: c.y,
+        role: c.role, num: c.num, name: c.name,
+        hair: "#292524", skillAnim: 0, slideAnim: 0, fallAngle: 0, stun: 0, vx: 0, vy: 0
+      }));
+
+      const awayCoords = [
+        { x: 890, y: 275, role: "ATA", num: 9,  name: "Rival 9" },
+        { x: 1010, y: 140, role: "ATA", num: 11, name: "Rival 11" },
+        { x: 1010, y: 410, role: "ATA", num: 7,  name: "Rival 7" },
+        { x: 1140, y: 200, role: "MEI", num: 10, name: "Rival 10" },
+        { x: 1140, y: 350, role: "MEI", num: 8,  name: "Rival 8" },
+        { x: 1270, y: 115, role: "MEI", num: 6,  name: "Rival 6" },
+        { x: 1270, y: 435, role: "MEI", num: 5,  name: "Rival 5" },
+        { x: 1410, y: 150, role: "ZAG", num: 4,  name: "Rival 4" },
+        { x: 1410, y: 400, role: "ZAG", num: 3,  name: "Rival 3" },
+        { x: 1530, y: 210, role: "ZAG", num: 2,  name: "Rival 2" },
+        { x: 1530, y: 340, role: "ZAG", num: 12, name: "Rival 12" }
+      ];
+
+      awayPlayers = awayCoords.map((c, idx) => ({
+        x: c.x, y: c.y, homeX: c.x, homeY: c.y,
+        role: c.role, num: c.num, name: c.name,
+        hair: "#111", shirt: "#ef4444", skillAnim: 0, slideAnim: 0, fallAngle: 0, stun: 0, vx: 0, vy: 0
+      }));
+
+      homeGK = { x: 42, y: 275 };
+      awayGK = { x: 1658, y: 275 };
+      controlledIdx = 0;
+      ball = { x: 825, y: 275, vx: 0, vy: 0, z: 0, vz: 0, owner: homePlayers[0], pickupCooldown: 0 };
+    }
+
+    function triggerPassOrSwitch() {
+      const active = homePlayers[controlledIdx];
+      if (ball.owner === active) {
+        let bestIdx = (controlledIdx + 1) % homePlayers.length;
+        const target = homePlayers[bestIdx];
+        const angle = Math.atan2(target.y - ball.y, target.x - ball.x);
+        
+        ball.owner = null; ball.pickupCooldown = 18;
+        ball.vx = Math.cos(angle) * 14; ball.vy = Math.sin(angle) * 14;
+        controlledIdx = bestIdx;
+      } else {
+        let closest = 0, minDist = 9999;
+        homePlayers.forEach((p, idx) => {
+          const d = Math.hypot(p.x - ball.x, p.y - ball.y);
+          if (d < minDist) { minDist = d; closest = idx; }
+        });
+        controlledIdx = closest;
+      }
+    }
+
+    function triggerDribble(type) {
+      const active = homePlayers[controlledIdx];
+      if (ball.owner !== active || active.skillAnim > 0) return;
+
+      active.skillAnim = 30;
+      if (type === 'elastic') {
+        active.x = Math.min(1660, active.x + 50);
+        spawnParticles(active.x, active.y, "#38bdf8", 14);
+        showToast("⚡ Drible Elástico!");
+      } else {
+        ball.z = 22; ball.vz = 5;
+        active.x = Math.min(1660, active.x + 45);
+        spawnParticles(active.x, active.y, "#fbbf24", 16);
+        showToast("🎩 Chapéu Aplicado!");
+      }
+
+      awayPlayers.forEach(ap => {
+        if (Math.hypot(ap.x - active.x, ap.y - active.y) < 85) {
+          ap.stun = 100;
+          ap.fallAngle = Math.PI / 2;
+          spawnParticles(ap.x, ap.y, "#ef4444", 12);
+        }
+      });
+    }
+
+    function triggerShoot(power) {
+      const active = homePlayers[controlledIdx];
+      if (ball.owner !== active) return;
+
+      const targetY = 275 + (Math.random() * 80 - 40);
+      const angle = Math.atan2(targetY - ball.y, 1675 - ball.x);
+      const speed = 15 + power * 12;
+
+      ball.owner = null; ball.pickupCooldown = 16;
+      ball.vx = Math.cos(angle) * speed; ball.vy = Math.sin(angle) * speed;
+      ball.vz = 3 + power * 3;
+      spawnParticles(active.x, active.y + 10, "#10b981", 16);
+    }
+
+    function triggerTackle() {
+      const active = homePlayers[controlledIdx];
+      if (ball.owner === active || active.slideAnim > 0) return;
+
+      active.slideAnim = 24;
+      const angle = Math.atan2(ball.y - active.y, ball.x - active.x);
+      active.vx = Math.cos(angle) * 8; active.vy = Math.sin(angle) * 8;
+
+      if (Math.hypot(ball.x - active.x, ball.y - active.y) < 65) {
+        if (ball.owner) {
+          ball.owner.stun = 70;
+          ball.owner.fallAngle = Math.PI / 2.2;
+        }
+        ball.owner = active; ball.pickupCooldown = 12;
+        showToast("🦵 Carrinho limpo!");
+      }
+    }
+
+    setInterval(() => {
+      if (!matchRunning || matchEnded || goalBannerTimer > 0) return;
+      matchSeconds++;
+      document.getElementById("match-clock").textContent = String(matchSeconds).padStart(2, "0") + "'";
+      if (matchSeconds >= 90) finishMatch();
+    }, 1000);
+
+    function finishMatch() {
+      matchEnded = true; matchRunning = false;
+      let earned = scoreHome * 60 + 350;
+      state.coins += earned;
+      saveState();
+      triggerOverlay("🏆", `Fim de Jogo: ${scoreHome} x ${scoreAway}`, `Você venceu e faturou +${earned} moedas!`);
+    }
+
+    function gameLoop() {
+      animTick++;
+      updatePhysics();
+      drawPitch();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function updatePhysics() {
+      particles.forEach(pt => { pt.x += pt.vx; pt.y += pt.vy; pt.life--; });
+      particles = particles.filter(pt => pt.life > 0);
+
+      if (!matchRunning || matchEnded) return;
+
+      if (goalBannerTimer > 0) {
+        goalBannerTimer--;
+        if (goalBannerTimer === 0) setupFormations();
+        return;
+      }
+
+      if (ball.pickupCooldown > 0) ball.pickupCooldown--;
+      if (isChargingShot) shotPower = Math.min(1, shotPower + 0.045);
+
+      const active = homePlayers[controlledIdx];
+      active.vx = 0; active.vy = 0;
+
+      if (active.skillAnim > 0) active.skillAnim--;
+      if (active.slideAnim > 0) {
+        active.slideAnim--;
+        active.x = Math.max(45, Math.min(1655, active.x + active.vx));
+        active.y = Math.max(FIELD_TOP + 12, Math.min(FIELD_BOTTOM - 12, active.y + active.vy));
+      } else if (active.stun > 0) {
+        active.stun--;
+        if (active.stun === 0) active.fallAngle = 0;
+      } else {
+        let mx = 0, my = 0;
+        if (keys["KeyW"] || keys["ArrowUp"]) my -= 1;
+        if (keys["KeyS"] || keys["ArrowDown"]) my += 1;
+        if (keys["KeyA"] || keys["ArrowLeft"]) mx -= 1;
+        if (keys["KeyD"] || keys["ArrowRight"]) mx += 1;
+
+        if (mx !== 0 || my !== 0) {
+          const len = Math.hypot(mx, my);
+          active.x = Math.max(45, Math.min(1655, active.x + (mx / len) * 4.2));
+          active.y = Math.max(FIELD_TOP + 12, Math.min(FIELD_BOTTOM - 12, active.y + (my / len) * 4.2));
+        }
+      }
+
+      cameraX += (ball.x - 490 - cameraX) * 0.1;
+      cameraX = Math.max(0, Math.min(PITCH_WIDTH - 980, cameraX));
+
+      homePlayers.forEach((p, idx) => {
+        if (p.stun > 0) { p.stun--; if (p.stun === 0) p.fallAngle = 0; return; }
+        if (idx === controlledIdx) return;
+        let targetX = p.homeX + (ball.x - 850) * 0.4;
+        let targetY = p.homeY + (ball.y - 275) * 0.2;
+        p.x += (targetX - p.x) * 0.04;
+        p.y += (targetY - p.y) * 0.04;
+        p.x = Math.max(45, Math.min(1655, p.x));
+        p.y = Math.max(FIELD_TOP + 12, Math.min(FIELD_BOTTOM - 12, p.y));
+      });
+
+      awayPlayers.forEach(ap => {
+        if (ap.stun > 0) { ap.stun--; if (ap.stun === 0) ap.fallAngle = 0; return; }
+        let targetX = ap.homeX + (ball.x - 850) * 0.4;
+        let targetY = ap.homeY + (ball.y - 275) * 0.2;
+        ap.x += (targetX - ap.x) * 0.045;
+        ap.y += (targetY - ap.y) * 0.045;
+        ap.x = Math.max(45, Math.min(1655, ap.x));
+        ap.y = Math.max(FIELD_TOP + 12, Math.min(FIELD_BOTTOM - 12, ap.y));
+      });
+
+      homeGK.y += (Math.max(220, Math.min(330, ball.y)) - homeGK.y) * 0.12;
+      awayGK.y += (Math.max(220, Math.min(330, ball.y)) - awayGK.y) * 0.12;
+
+      if (ball.owner) {
+        ball.x = ball.owner.x + (homePlayers.includes(ball.owner) ? 13 : -13);
+        ball.y = ball.owner.y + 4;
+        ball.vx = 0; ball.vy = 0; ball.z = 0;
+      } else {
+        ball.x += ball.vx; ball.y += ball.vy;
+        ball.vx *= 0.965; ball.vy *= 0.965;
+
+        if (ball.z > 0 || ball.vz !== 0) {
+          ball.z += ball.vz; ball.vz -= 0.35;
+          if (ball.z <= 0) { ball.z = 0; ball.vz = 0; }
+        }
+
+        if (ball.y < FIELD_TOP + 8 || ball.y > FIELD_BOTTOM - 8) {
+          ball.vy *= -0.75;
+          ball.y = Math.max(FIELD_TOP + 9, Math.min(FIELD_BOTTOM - 9, ball.y));
+        }
+
+        if (ball.x > 1670 && ball.y > 220 && ball.y < 330) {
+          scoreHome++;
+          goalBannerText = `⚽ GOOOOL!`;
+          goalBannerTimer = 85;
+          document.getElementById("score-home").textContent = scoreHome;
+          spawnParticles(1670, ball.y, "#10b981", 30);
+          return;
+        }
+
+        if (ball.pickupCooldown === 0 && ball.z < 14) {
+          homePlayers.forEach((p, idx) => {
+            if (!ball.owner && p.stun === 0 && Math.hypot(ball.x - p.x, ball.y - p.y) < 22) {
+              ball.owner = p; controlledIdx = idx;
+            }
+          });
+          awayPlayers.forEach(ap => {
+            if (!ball.owner && ap.stun === 0 && Math.hypot(ball.x - ap.x, ball.y - ap.y) < 22) {
+              ball.owner = ap;
+            }
+          });
+        }
+      }
+    }
+
+    function drawPitch() {
+      ctx.save();
+      ctx.translate(-cameraX, 0);
+
+      ctx.fillStyle = "#166534";
+      ctx.fillRect(0, FIELD_TOP, PITCH_WIDTH, PITCH_HEIGHT - FIELD_TOP);
+      ctx.fillStyle = "#15803d";
+      for (let i = 0; i < PITCH_WIDTH; i += 100) ctx.fillRect(i, FIELD_TOP, 50, PITCH_HEIGHT - FIELD_TOP);
+
+      ctx.strokeStyle = "rgba(240,253,244,0.88)";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(30, FIELD_TOP, PITCH_WIDTH - 60, FIELD_BOTTOM - FIELD_TOP);
+
+      ctx.beginPath(); ctx.moveTo(PITCH_WIDTH / 2, FIELD_TOP); ctx.lineTo(PITCH_WIDTH / 2, FIELD_BOTTOM); ctx.stroke();
+      ctx.beginPath(); ctx.arc(PITCH_WIDTH / 2, 275, 70, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeRect(30, 175, 130, 200);
+      ctx.strokeRect(PITCH_WIDTH - 160, 175, 130, 200);
+
+      ctx.fillStyle = "rgba(255,255,255,0.4)";
+      ctx.fillRect(10, 220, 20, 110);
+      ctx.fillRect(PITCH_WIDTH - 30, 220, 20, 110);
+
+      drawPlayerObject(homeGK.x, homeGK.y, "#fbbf24", "#111", "GK", false, 0);
+      drawPlayerObject(awayGK.x, awayGK.y, "#a855f7", "#fff", "GK", false, 0);
+
+      homePlayers.forEach((p, idx) => {
+        drawPlayerObject(p.x, p.y, "#10b981", p.hair, `${p.num} ${p.name}`, idx === controlledIdx, p.fallAngle);
+      });
+
+      awayPlayers.forEach(ap => {
+        drawPlayerObject(ap.x, ap.y, ap.shirt, "#fff", ap.hair, `${ap.num}`, false, ap.fallAngle);
+      });
+
+      particles.forEach(pt => { ctx.fillStyle = pt.color; ctx.fillRect(pt.x, pt.y, 4, 4); });
+
+      ctx.fillStyle = "rgba(0,0,0,0.35)";
+      ctx.beginPath(); ctx.ellipse(ball.x, ball.y + 6, 7, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y - ball.z, 7.5 + ball.z * 0.15, 0, Math.PI * 2);
+      ctx.fillStyle = "#ffffff"; ctx.fill(); ctx.strokeStyle = "#000"; ctx.lineWidth = 2; ctx.stroke();
+
+      if (goalBannerTimer > 0) {
+        ctx.fillStyle = "rgba(3, 7, 18, 0.9)";
+        ctx.fillRect(cameraX, 200, 980, 120);
+        ctx.fillStyle = "#10b981"; ctx.font = "900 32px system-ui"; ctx.textAlign = "center";
+        ctx.fillText(goalBannerText, cameraX + 490, 270);
+      }
+
+      ctx.restore();
+    }
+
+    function drawPlayerObject(x, y, shirtColor, hairColor, label, isSelected, fallAngle = 0) {
+      ctx.save();
+      ctx.translate(x, y);
+
+      if (isSelected) {
+        ctx.beginPath(); ctx.moveTo(0, -30); ctx.lineTo(-6, -38); ctx.lineTo(6, -38); ctx.closePath();
+        ctx.fillStyle = "#10b981"; ctx.fill();
+      }
+
+      if (fallAngle > 0) {
+        ctx.rotate(fallAngle);
+      }
+
+      ctx.fillStyle = hairColor; ctx.fillRect(-5, -16, 10, 5);
+      ctx.fillStyle = "#fbcfe8"; ctx.fillRect(-4, -11, 8, 7);
+      ctx.fillStyle = shirtColor; ctx.fillRect(-7, -4, 14, 12);
+
+      const legSwing = Math.sin(animTick * 0.3) * 3;
+      ctx.fillStyle = "#022c22"; ctx.fillRect(-6, 8 + legSwing, 5, 5);
+      ctx.fillStyle = "#022c22"; ctx.fillRect(1, 8 - legSwing, 5, 5);
+
+      ctx.restore();
+
+      if (label && fallAngle === 0) {
+        ctx.fillStyle = "#ffffff"; ctx.font = "bold 9px system-ui"; ctx.textAlign = "center";
+        ctx.fillText(label, x, y + 27);
+      }
+    }
+
+    updateHUD();
+    gameLoop();
+  </script>
+</body>
+</html>
